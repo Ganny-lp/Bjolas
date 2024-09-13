@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 # Caminho do driver Edge
-driver_path = 'C:/Users/geova/OneDrive/Área de Trabalho/Edge_driver/msedgedriver.exe'
+driver_path = 'Edge_driver/msedgedriver.exe'
 driver = webdriver.Edge(driver_path)
 
 # Acessa o site e faz o login
