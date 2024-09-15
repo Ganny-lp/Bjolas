@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 
 # Caminho para o driver do Edge
@@ -43,53 +44,73 @@ ID_Submissao = '227308'
 url_submissao = f'https://revistas.usp.br/prolam/workflow/index/{ID_Submissao}/3'
 driver.get(url_submissao)
 
-# Espera o nome do parecerista aparecer
+# Espera o nome do parecerista aparecer e rola até ele
+parecerista_element = WebDriverWait(driver, 15).until(
+    EC.presence_of_element_located((By.XPATH, "//span[@class='label' and contains(text(), 'Elen Cristina')]"))
+)
+
+# Garante que o parecerista esteja visível rolando até ele
+driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", parecerista_element)
+
+# Verifica se o elemento está visível
+is_visible = driver.execute_script("return arguments[0].offsetParent !== null;", parecerista_element)
+print(f"Elemento parecerista visível: {is_visible}")
+
+# Print do texto do elemento para debug
+print(f"Texto do parecerista: {parecerista_element.text}")
+
+# Espera o botão "show_extras" e tenta clicar
+extras_button = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.XPATH, "//a[@class='show_extras']"))
+)
+
+# Verifica se o botão está visível e clicável
+is_visible_button = driver.execute_script("return arguments[0].offsetParent !== null;", extras_button)
+print(f"Botão 'show_extras' visível: {is_visible_button}")
+
+# Rolar para o botão e tentar clicar
+driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", extras_button)
+
+# Print do estado do botão antes do clique
+print(f"Estado do botão 'show_extras' antes do clique: {extras_button.is_displayed()}")
+
+# Tentativa de clique direto via JavaScript
 try:
-    parecerista_element = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.XPATH, "//span[@class='label' and contains(text(), 'Elen Cristina')]"))
-    )
-    parecerista = parecerista_element.text
-    print(f"Parecerista encontrado: {parecerista}")
+    driver.execute_script("arguments[0].click();", extras_button)
+    print("Clique via JavaScript realizado com sucesso")
 except Exception as e:
-    print(f"Erro ao encontrar parecerista: {e}")
-    driver.quit()
-    exit()
+    print(f"Erro ao clicar via JavaScript: {e}")
 
-# Expande o botão "show_extras"
+# Espera e clica em "Detalhes da avaliação"
+detalhes_button = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.XPATH, "//a[contains(text(), 'Detalhes da avaliação')]"))
+)
+
+# Rolar para o botão e tentar clicar
+driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", detalhes_button)
+
+# Print do estado do botão antes do clique
+print(f"Estado do botão 'Detalhes da avaliação' antes do clique: {detalhes_button.is_displayed()}")
+
+# Tentativa de clique direto via JavaScript
 try:
-    extras_button = WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.XPATH, "//a[@class='hide_extras']"))
-    )
-    extras_button.click()
+    driver.execute_script("arguments[0].click();", detalhes_button)
+    print("Clique via JavaScript realizado com sucesso")
 except Exception as e:
-    print(f"Erro ao clicar em 'show_extras': {e}")
-    driver.quit()
-    exit()
+    print(f"Erro ao clicar via JavaScript: {e}")
 
-# Encontrar e clicar no próximo elemento que contém "Detalhes"
-try:
-    # Localiza todos os elementos que podem conter o texto "Detalhes"
-    detalhes_elements = driver.find_elements(By.XPATH, "//a[contains(text(), 'Detalhes da avaliação')]")
-    
-    if detalhes_elements:
-        # Obtém o primeiro elemento que contém "Detalhes"
-        detalhes_button = detalhes_elements[0]
+# Espera pela data de conclusão
+data_element = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.XPATH, "//div[@class='pkp_controllers_informationCenter_itemLastEvent' and contains(text(), 'Completo em:')]"))
+)
+data_text = data_element.text
 
-        # Scroll para o elemento para garantir que ele esteja visível
-        driver.execute_script("arguments[0].scrollIntoView(true);", detalhes_button)
+# Extraindo a data no formato DD/MM/AAAA
+data_completa = data_text.split("Completo em: ")[1].split(" ")[0]
+ano, mes, dia = data_completa.split('-')
+data_formatada = f"{dia}/{mes}/{ano}"
 
-        # Adiciona um pequeno delay para garantir que o elemento esteja interativo
-        time.sleep(2)
-
-        # Tenta clicar no elemento usando JavaScript
-        driver.execute_script("arguments[0].click();", detalhes_button)
-
-        print("Achou e clicou em 'Detalhes da avaliação'")
-    else:
-        print("Não encontrou elementos contendo 'Detalhes da avaliação'")
-
-except Exception as e:
-    print(f"Erro ao encontrar ou clicar em 'Detalhes da avaliação': {e}")
+print(f"Data de conclusão: {data_formatada}")
 
 # Fechar o navegador
 driver.quit()
