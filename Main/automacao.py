@@ -12,12 +12,11 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 # Informações da planilha
 id_planilha = "1X1OZgLJGHxK_j3zsplVmg1k56P0jyDB1rhP_YE0BFPM"
-aba_trabalho = "Fluxo de Edição - Trabalhos!A1:B11"
-aba_certificado = "Mala Direta Certificados!A:K"
+aba_trabalho = "Fluxo de Edição - Trabalhos!A:Q"
+aba_certificado = "Mala Direta Certificados!A:N"
 
-
-def main():
-  # Fazer a autenticação/logiin
+def conectar_google_sheets():
+    # Fazer a autenticação/logiin
   creds = None
   if os.path.exists("token.json"):
     creds = Credentials.from_authorized_user_file("token.json", SCOPES)
@@ -34,6 +33,9 @@ def main():
     with open("token.json", "w") as token:
       token.write(creds.to_json())
 
+  return creds
+
+def ler_dados(creds):
   try:
     service = build("sheets", "v4", credentials=creds)
     sheet = service.spreadsheets()
@@ -51,6 +53,14 @@ def main():
     for linhas in valores:
       print(linhas)
 
+  except HttpError as err:
+    print(err)
+
+def escrever_dados(creds):
+  try:
+    service = build("sheets", "v4", credentials=creds)
+    sheet = service.spreadsheets()
+
     # Escrever informações no google sheets
     valores = [
       ["11", "teste1"], 
@@ -61,7 +71,7 @@ def main():
         sheet.values()
         .update(
             spreadsheetId=id_planilha,
-            range='Página1!A12',
+            range=aba_certificado,
             valueInputOption="RAW",
             body={"values": valores},
         )
@@ -71,6 +81,15 @@ def main():
   except HttpError as err:
     print(err)
 
+
+def main():
+  credencial = conectar_google_sheets()
+
+  # Ler dados
+  ler_dados(credencial)
+
+  # Escrever dados
+  # escrever_dados(creds)
 
 if __name__ == "__main__":
   main()
