@@ -12,8 +12,8 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 # Informações da planilha
 id_planilha = "1X1OZgLJGHxK_j3zsplVmg1k56P0jyDB1rhP_YE0BFPM"
-aba_trabalho = "Página1!A1:B11"
-aba_certificado = "certificado!A:K"
+aba_trabalho = "Fluxo de Edição - Trabalhos!A1:B11"
+aba_certificado = "Mala Direta Certificados!A:K"
 
 
 def main():
@@ -50,6 +50,23 @@ def main():
     # exibir as informações
     for linhas in valores:
       print(linhas)
+
+    # Escrever informações no google sheets
+    valores = [
+      ["11", "teste1"], 
+      ["12", "teste2"]
+      ]
+    
+    resultado = (
+        sheet.values()
+        .update(
+            spreadsheetId=id_planilha,
+            range='Página1!A12',
+            valueInputOption="RAW",
+            body={"values": valores},
+        )
+        .execute()
+    )
 
   except HttpError as err:
     print(err)
