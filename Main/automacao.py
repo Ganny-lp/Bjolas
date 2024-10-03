@@ -5,13 +5,15 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from pprint import pprint
 
 # qual o tipo de acesso que queremos
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 # Informações da planilha
-SAMPLE_SPREADSHEET_ID = "1X1OZgLJGHxK_j3zsplVmg1k56P0jyDB1rhP_YE0BFPM"
-SAMPLE_RANGE_NAME = "Página1!A1:B11"
+id_planilha = "1X1OZgLJGHxK_j3zsplVmg1k56P0jyDB1rhP_YE0BFPM"
+aba_trabalho = "Página1!A1:B11"
+aba_certificado = "certificado!A:K"
 
 
 def main():
@@ -32,28 +34,25 @@ def main():
     with open("token.json", "w") as token:
       token.write(creds.to_json())
 
-#   try:
-#     service = build("sheets", "v4", credentials=creds)
+  try:
+    service = build("sheets", "v4", credentials=creds)
+    sheet = service.spreadsheets()
 
-#     # Call the Sheets API
-#     sheet = service.spreadsheets()
-#     result = (
-#         sheet.values()
-#         .get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME)
-#         .execute()
-#     )
-#     values = result.get("values", [])
+    # Ler informações do google sheets
+    resultado = (
+        sheet.values()
+        .get(spreadsheetId=id_planilha, range=aba_trabalho)
+        .execute()
+    )
 
-#     if not values:
-#       print("No data found.")
-#       return
+    valores = resultado["values"];
 
-#     print("Name, Major:")
-#     for row in values:
-#       # Print columns A and E, which correspond to indices 0 and 4.
-#       print(f"{row[0]}, {row[4]}")
-#   except HttpError as err:
-#     print(err)
+    # exibir as informações
+    for linhas in valores:
+      print(linhas)
+
+  except HttpError as err:
+    print(err)
 
 
 if __name__ == "__main__":
